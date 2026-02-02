@@ -1,9 +1,9 @@
 services:
+  # Token Server - handles /call API endpoint
   - type: web
     name: relatim-token-server
-    runtime: python
-    buildCommand: pip install -r requirements-server.txt
-    startCommand: uvicorn token_server:app --host 0.0.0.0 --port $PORT
+    runtime: docker
+    dockerfilePath: ./Dockerfile
     envVars:
       - key: LIVEKIT_URL
         value: wss://relatim-v1wlyfls.livekit.cloud
@@ -11,5 +11,28 @@ services:
         value: APIgNUtuSTugMPF
       - key: LIVEKIT_API_SECRET
         value: G94A3JBc7teQiXnmvA2RO1MTQWRf7FRa7XfWYJCebJAB
+      - key: LIVEKIT_SIP_TRUNK_ID
+        value: ST_tNA4ThVu9bbv
+    plan: free
+    region: singapore
+
+  # Voice Agent - background worker that handles conversations
+  - type: worker
+    name: relatim-voice-agent
+    runtime: docker
+    dockerfilePath: ./Dockerfile.agent
+    envVars:
+      - key: LIVEKIT_URL
+        value: wss://relatim-v1wlyfls.livekit.cloud
+      - key: LIVEKIT_API_KEY
+        value: APIgNUtuSTugMPF
+      - key: LIVEKIT_API_SECRET
+        value: G94A3JBc7teQiXnmvA2RO1MTQWRf7FRa7XfWYJCebJAB
+      - key: DEEPGRAM_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: CARTESIA_API_KEY
+        sync: false
     plan: free
     region: singapore
