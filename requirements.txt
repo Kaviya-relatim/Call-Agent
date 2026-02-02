@@ -1,0 +1,33 @@
+# Relatim Backend Requirements
+# =============================
+# Install with: pip install -r requirements.txt
+
+# FastAPI for token server
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+python-dotenv>=1.0.0
+
+# HTTP requests for SIP API
+requests>=2.31.0
+
+# LiveKit Server SDK for token generation
+livekit-api>=1.0.0
+
+# LiveKit Agents Framework (compatible with Python 3.14)
+livekit-agents>=1.2.0
+
+# STT - Deepgram plugin
+livekit-plugins-deepgram
+
+# TTS - Cartesia plugin (reliable with LiveKit)
+livekit-plugins-cartesia
+
+# VAD - Silero plugin (voice activity detection)
+livekit-plugins-silero
+
+# LLM - Groq plugin
+livekit-plugins-groq
+
+# Pydantic for data validation
+pydantic>=2.5.3
+
