@@ -2,14 +2,22 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install token server dependencies only
-COPY requirements-server.txt .
-RUN pip install --no-cache-dir -r requirements-server.txt
+# Install system dependencies for audio processing
+RUN apt-get update && apt-get install -y \
+    gcc \
+    libffi-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy only the token server
+# Install ALL dependencies (both server and agent)
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy all source files
 COPY token_server.py .
+COPY voice_agent.py .
+COPY main.py .
 
 EXPOSE 10000
 
-# Run the TOKEN SERVER
-CMD ["uvicorn", "token_server:app", "--host", "0.0.0.0", "--port", "10000"]
+# Run the COMBINED server (token server + voice agent)
+CMD ["python", "main.py", "start"]
