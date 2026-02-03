@@ -96,8 +96,8 @@ class DispatchRequest(BaseModel):
     dealerId: Optional[str] = None
     direction: Optional[str] = "inbound"
     customerPhone: Optional[str] = None
-    token: str
-    livekitUrl: str
+    token: Optional[str] = None  # Optional - not needed for agent dispatch
+    livekitUrl: Optional[str] = None  # Optional - not needed for agent dispatch
 
 
 @app.get("/health", response_model=HealthResponse)
