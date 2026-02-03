@@ -83,6 +83,22 @@ class HealthResponse(BaseModel):
 class CallRequest(BaseModel):
     phone: str
 
+class DispatchRequest(BaseModel):
+    roomName: str
+    callId: str
+    systemPrompt: Optional[str] = None
+    greetingMessage: Optional[str] = None
+    language: Optional[str] = "en"
+    voiceId: Optional[str] = None
+    maxDuration: Optional[int] = 1800
+    silenceTimeout: Optional[int] = 30
+    enableRecording: Optional[bool] = True
+    dealerId: Optional[str] = None
+    direction: Optional[str] = "inbound"
+    customerPhone: Optional[str] = None
+    token: str
+    livekitUrl: str
+
 
 @app.get("/health", response_model=HealthResponse)
 async def health_check():
@@ -293,6 +309,62 @@ async def dispatch_agent(room_name: str, agent_name: str = "relatim-voice-agent"
         }
         
     except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to dispatch agent: {str(e)}"
+        )
+
+
+@app.post("/dispatch")
+async def dispatch_agent_json(request: DispatchRequest):
+    """
+    Dispatch an agent to a room with full configuration.
+    
+    Accepts JSON payload with agent parameters.
+    """
+    try:
+        # Create LiveKit API client
+        livekit_api = api.LiveKitAPI(
+            LIVEKIT_URL.replace("wss://", "https://").replace("ws://", "http://"),
+            LIVEKIT_API_KEY,
+            LIVEKIT_API_SECRET
+        )
+        
+        # Create agent dispatch request with metadata
+        import json
+        metadata = json.dumps({
+            "systemPrompt": request.systemPrompt,
+            "greetingMessage": request.greetingMessage,
+            "language": request.language,
+            "voiceId": request.voiceId,
+            "maxDuration": request.maxDuration,
+            "silenceTimeout": request.silenceTimeout,
+            "enableRecording": request.enableRecording,
+            "dealerId": request.dealerId,
+            "direction": request.direction,
+            "customerPhone": request.customerPhone,
+            "callId": request.callId,
+        })
+        
+        dispatch_request = api.CreateAgentDispatchRequest(
+            room=request.roomName,
+            agent_name="relatim-voice-agent",
+            metadata=metadata
+        )
+        
+        # Send the dispatch request
+        await livekit_api.agent_dispatch.create_dispatch(dispatch_request)
+        await livekit_api.aclose()
+        
+        return {
+            "status": "dispatched",
+            "agentId": f"agent-{request.callId[:8]}",
+            "roomName": request.roomName,
+        }
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(
             status_code=500,
             detail=f"Failed to dispatch agent: {str(e)}"
